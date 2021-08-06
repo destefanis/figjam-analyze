@@ -30,11 +30,11 @@
 
 .empty-state {
   height: calc(100% - 32px);
-  width: 100%;
+  width: calc(100% - 32px);
   border: 1px solid #e5e5e5;
   text-align: center;
-  margin-bottom: 16px;
-  padding: 40px 0;
+  margin: 16px auto;
+  padding: 24px;
   border-radius: 6px;
   display: flex;
   align-content: center;
@@ -53,6 +53,12 @@
   display: flex;
   justify-content: center;
   align-content: center;
+}
+
+.layer-icon {
+  margin: auto;
+  width: 32px;
+  height: 32px;
 }
 
 .empty-state__title {

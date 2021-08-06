@@ -36,11 +36,10 @@ figma.ui.onmessage = async msg => {
     if (figma.currentPage.selection.length === 0) {
       figma.ui.postMessage({
         type: "selection-updated",
-        message: 0
+        message: "empty"
       });
     } else {
       let selectedNodes = flatten(figma.currentPage.selection);
-
       // Update the UI with the number of selected nodes.
       figma.ui.postMessage({
         type: "selection-updated",
@@ -52,24 +51,61 @@ figma.ui.onmessage = async msg => {
   // When a button is clicked
   if (msg.type === "button-clicked") {
     const selection = figma.currentPage.selection;
+    let x = selection[0].x;
+    let y = selection[0].y;
 
     if (msg.message === "convert-layers") {
-      selection.map(selected => convertToSticky(selected));
+      selection.map(selected => convertToSticky(selected, x, y));
     }
 
     if (msg.message === "convert-paragraph") {
-      // nodesToTheme.map(selected => updateTheme(selected, lightTheme));
+      selection.map(selected => convertParagraph(selected, x, y));
     }
 
-    async function convertToSticky(node) {
-      // await figma.loadFontAsync({ family: "Inter", style: "Medium" })
-
+    async function convertToSticky(node, x, y) {
       if (node.type === "TEXT") {
         let newSticky = figma.createSticky();
-        // await figma.loadFontAsync(newSticky.text.fontName)
+        newSticky.x = x + 200;
+        newSticky.y = y + 200;
         newSticky.text.characters = node.characters;
       } else {
         return;
+      }
+    }
+
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    async function convertParagraph(node, x, y) {
+      if (node.type === "TEXT") {
+        let textToConvert = [];
+        let existingString = node.characters;
+        let splitLines = existingString.split("\n");
+
+        splitLines.forEach(string => {
+          if (string !== "") {
+            if (string.match(/[^\.!\?]+[\.!\?]+/g)) {
+              let splitSentences = string.match(/[^\.!\?]+[\.!\?]+/g);
+              textToConvert.push(...splitSentences);
+            } else {
+              let newSticky = figma.createSticky();
+              newSticky.x = x + getRandomInt(200, 400);
+              newSticky.y = y + getRandomInt(200, 400);
+              newSticky.text.characters = string;
+            }
+          }
+        });
+
+        textToConvert.forEach(sentence => {
+          let trimSentence = sentence.trim();
+          let newSticky = figma.createSticky();
+          newSticky.x = x + getRandomInt(200, 400);
+          newSticky.y = y + getRandomInt(200, 400);
+          newSticky.text.characters = trimSentence;
+        });
       }
     }
 
@@ -82,6 +118,6 @@ figma.ui.onmessage = async msg => {
     //   });
     // }, 500);
 
-    figma.notify(`Stickys Created 🎉`, { timeout: 750 });
+    figma.notify(`Stickys Created 🎉`, { timeout: 1000 });
   }
 };

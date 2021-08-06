@@ -1,19 +1,13 @@
 import * as React from "react";
 import "../styles/figma-plugin-ds.css";
 import "../styles/ui.css";
-import "../styles/nav.css";
 import "../styles/controls.css";
 import "../styles/empty-state.css";
-
-import ListItem from "./ListItem";
 
 declare function require(path: string): any;
 
 const App = ({}) => {
   const [selectedLayersLength, setSelectLayersLength] = React.useState(0);
-  const [activeTab, setActiveTab] = React.useState("themes");
-  const [skippedLayers, setSkippedLayers] = React.useState([]);
-  const [activeLayer, setActiveLayer] = React.useState(0);
 
   const onRunApp = React.useCallback(() => {
     const message = "";
@@ -29,29 +23,12 @@ const App = ({}) => {
   }, []);
 
   const convertParagraph = React.useCallback(() => {
-    const message = "convert-pargraph";
+    const message = "convert-paragraph";
     parent.postMessage(
       { pluginMessage: { type: "button-clicked", message } },
       "*"
     );
   }, []);
-
-  function setThemesActive() {
-    setActiveTab("themes");
-  }
-
-  function setLayersActive() {
-    setActiveTab("layers");
-  }
-
-  // When the user selects a layer in the skipped layer list.
-  const handleLayerSelect = id => {
-    setActiveLayer(id);
-    parent.postMessage(
-      { pluginMessage: { type: "select-layer", id: id } },
-      "*"
-    );
-  };
 
   React.useEffect(() => {
     onRunApp();
@@ -60,29 +37,15 @@ const App = ({}) => {
       const { type, message } = event.data.pluginMessage;
 
       if (type === "selection-updated") {
-        let nodeArray = JSON.parse(message);
-        setSelectLayersLength(nodeArray.length);
-      }
-
-      if (type === "layers-skipped") {
-        let unthemedLayers = JSON.parse(message);
-        setSkippedLayers(skippedLayers => [
-          ...skippedLayers,
-          ...unthemedLayers
-        ]);
-        setActiveTab("layers");
+        if (message === "empty") {
+          setSelectLayersLength(0);
+        } else {
+          let nodeArray = JSON.parse(message);
+          setSelectLayersLength(nodeArray.length);
+        }
       }
     };
   }, []);
-
-  const listItems = skippedLayers.map(node => (
-    <ListItem
-      activeLayer={activeLayer}
-      onClick={handleLayerSelect}
-      key={node.id}
-      node={node}
-    />
-  ));
 
   return (
     <div className="wrapper">
@@ -92,63 +55,34 @@ const App = ({}) => {
             <img className="layer-icon" src={require("../assets/layers.svg")} />
           </div>
           <h3 className="type type--pos-large-medium">
-            Select a layer to get started.
+            Select a layer(s) first and hit start.
           </h3>
+          <button
+            className="button button--primary button-margin-top"
+            onClick={onRunApp}
+          >
+            Start
+          </button>
         </div>
       ) : (
         <React.Fragment>
-          <nav className="nav">
-            <div
-              onClick={setThemesActive}
-              className={`section-title ${
-                activeTab === "themes" ? "active" : "disabled"
-              }`}
+          <div className="active-state">
+            <h3 className="active-state-title type type--pos-large-medium">
+              You have {selectedLayersLength} text layers selected to convert.
+            </h3>
+            <button
+              className="button button--primary button-margin-bottom"
+              onClick={convertTextLayers}
             >
-              Themes
-            </div>
-            <div
-              onClick={setLayersActive}
-              className={`section-title ${
-                activeTab === "layers" ? "active" : "disabled"
-              }`}
+              Convert Layers to Stickies
+            </button>
+            <button
+              className="button button--secondary"
+              onClick={convertParagraph}
             >
-              Skipped Layers{" "}
-              {skippedLayers.length !== 0 ? (
-                <span className="layer-count"> ({skippedLayers.length})</span>
-              ) : null}
-            </div>
-          </nav>
-          {activeTab === "themes" ? (
-            <div className="active-state">
-              <h3 className="active-state-title type type--pos-large-medium">
-                You have {selectedLayersLength} text layers selected to convert.
-              </h3>
-              <button
-                className="button button--primary button-margin-bottom"
-                onClick={convertTextLayers}
-              >
-                Convert Layers to Stickies
-              </button>
-              <button
-                className="button button--secondary"
-                onClick={convertParagraph}
-              >
-                Convert Paragraph
-              </button>
-            </div>
-          ) : (
-            <div className="layer-list-wrapper">
-              {skippedLayers.length === 0 ? (
-                <div className="active-state">
-                  <h3 className="active-state-title layer-empty-title type type--pos-large-medium">
-                    No layers have been skipped yet.
-                  </h3>
-                </div>
-              ) : (
-                <ul className="list">{listItems}</ul>
-              )}
-            </div>
-          )}
+              Convert Paragraph
+            </button>
+          </div>
         </React.Fragment>
       )}
     </div>
