@@ -51,12 +51,15 @@ const App = ({}) => {
     <div className="wrapper">
       {selectedLayersLength === 0 ? (
         <div className="empty-state">
-          <div className="empty-state__image">
-            <img className="layer-icon" src={require("../assets/layers.svg")} />
+          <div className="empty-state-content">
+            <img
+              className="layer-icon"
+              src={require("../assets/convert.svg")}
+            />
+            <h3 className="type type--pos-large-medium">
+              Select a text layer(s) first and hit start.
+            </h3>
           </div>
-          <h3 className="type type--pos-large-medium">
-            Select a layer(s) first and hit start.
-          </h3>
           <button
             className="button button--primary button-margin-top"
             onClick={onRunApp}
@@ -67,21 +70,34 @@ const App = ({}) => {
       ) : (
         <React.Fragment>
           <div className="active-state">
-            <h3 className="active-state-title type type--pos-large-medium">
+            {/* <h3 className="active-state-title type type--pos-large-medium">
               You have {selectedLayersLength} text layers selected to convert.
-            </h3>
-            <button
-              className="button button--primary button-margin-bottom"
-              onClick={convertTextLayers}
-            >
-              Convert Layers to Stickies
-            </button>
-            <button
-              className="button button--secondary"
-              onClick={convertParagraph}
-            >
-              Convert Paragraph
-            </button>
+            </h3> */}
+
+            <div className="card-wrapper">
+              <div className="card">
+                <div className="card-content" onClick={convertTextLayers}>
+                  <img
+                    className="layer-icon"
+                    src={require("../assets/convert-layers.svg")}
+                  />
+                  <h3 className=" type type--pos-large-medium">
+                    Turn selected text layers into stickys
+                  </h3>
+                </div>
+              </div>
+              <div className="card">
+                <div className="card-content" onClick={convertParagraph}>
+                  <img
+                    className="layer-icon"
+                    src={require("../assets/convert.svg")}
+                  />
+                  <h3 className=" type type--pos-large-medium">
+                    Turn paragraph into stickys
+                  </h3>
+                </div>
+              </div>
+            </div>
           </div>
         </React.Fragment>
       )}

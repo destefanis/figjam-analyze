@@ -1,5 +1,5 @@
 // Plugin window dimensions
-figma.showUI(__html__, { width: 320, height: 358 });
+figma.showUI(__html__, { width: 320, height: 407 });
 
 // Utility function for serializing nodes to pass back to the UI.
 function serializeNodes(nodes) {
@@ -95,6 +95,8 @@ figma.ui.onmessage = async msg => {
               newSticky.x = x + getRandomInt(200, 400);
               newSticky.y = y + getRandomInt(200, 400);
               newSticky.text.characters = string;
+              // todo Bring to front
+              // todo illustrations + animations
             }
           }
         });

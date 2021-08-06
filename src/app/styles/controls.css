@@ -5,3 +5,37 @@
 .button-margin-top {
   margin-top: 12px;
 }
+
+.card-wrapper {
+  display: flex;
+  flex-flow: column;
+}
+
+.card {
+  width: 100%;
+  border: 1px solid #e5e5e5;
+  text-align: center;
+  margin: 0 auto 16px;
+  padding: 16px;
+  border-radius: 6px;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 200ms ease;
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.card:hover {
+  border: 1px solid #18a0fb;
+  box-shadow: 0 6px 11px rgba(0, 0, 0, 0.08);
+}
+
+.card-content {
+  margin-bottom: 16px;
+}
+
+.card-content img {
+  margin-bottom: 16px;
+}

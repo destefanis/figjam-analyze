@@ -7,7 +7,7 @@
   flex-flow: column;
   align-content: center;
   justify-content: center;
-  padding: 16px;
+  padding: 16px 16px 0;
 }
 
 .active-state-title {
@@ -34,7 +34,7 @@
   border: 1px solid #e5e5e5;
   text-align: center;
   margin: 16px auto;
-  padding: 24px;
+  padding: 16px;
   border-radius: 6px;
   display: flex;
   align-content: center;
@@ -56,9 +56,13 @@
 }
 
 .layer-icon {
+  margin-bottom: 16px;
+  /* width: 32px;
+  height: 32px; */
+}
+
+.empty-state-content {
   margin: auto;
-  width: 32px;
-  height: 32px;
 }
 
 .empty-state__title {
