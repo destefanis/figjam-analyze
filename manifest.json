@@ -1,7 +1,10 @@
 {
-  "name": "Auto Theme",
-  "id": "816463256448925575",
+  "name": "Create Sticky",
+  "id": "1005240989771352255",
   "api": "1.0.0",
   "main": "dist/code.js",
-  "ui": "dist/ui.html"
+  "ui": "dist/ui.html",
+  "editorType": [
+    "figjam"
+  ]
 }

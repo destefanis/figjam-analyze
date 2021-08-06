@@ -20,22 +20,18 @@ const App = ({}) => {
     parent.postMessage({ pluginMessage: { type: "run-app", message } }, "*");
   }, []);
 
-  // This tells the controller.ts file to theme
-  // our selection from dark to light.
-  const themeToLight = React.useCallback(() => {
-    const message = "dark-to-light-theme";
+  const convertTextLayers = React.useCallback(() => {
+    const message = "convert-layers";
     parent.postMessage(
-      { pluginMessage: { type: "theme-update", message } },
+      { pluginMessage: { type: "button-clicked", message } },
       "*"
     );
   }, []);
 
-  // This tells the controller.ts file to theme
-  // our selection from light to dark.
-  const themeToDark = React.useCallback(() => {
-    const message = "light-to-dark-theme";
+  const convertParagraph = React.useCallback(() => {
+    const message = "convert-pargraph";
     parent.postMessage(
-      { pluginMessage: { type: "theme-update", message } },
+      { pluginMessage: { type: "button-clicked", message } },
       "*"
     );
   }, []);
@@ -125,19 +121,19 @@ const App = ({}) => {
           {activeTab === "themes" ? (
             <div className="active-state">
               <h3 className="active-state-title type type--pos-large-medium">
-                {selectedLayersLength} layers selected for themeing
+                You have {selectedLayersLength} text layers selected to convert.
               </h3>
               <button
                 className="button button--primary button-margin-bottom"
-                onClick={themeToLight}
+                onClick={convertTextLayers}
               >
-                Light Theme
+                Convert Layers to Stickies
               </button>
               <button
                 className="button button--secondary"
-                onClick={themeToDark}
+                onClick={convertParagraph}
               >
-                Dark Theme
+                Convert Paragraph
               </button>
             </div>
           ) : (
