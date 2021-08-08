@@ -48,6 +48,10 @@ figma.ui.onmessage = async msg => {
     }
   }
 
+  if (msg.type === "close-app") {
+    figma.closePlugin();
+  }
+
   // When a button is clicked
   if (msg.type === "button-clicked") {
     const selection = figma.currentPage.selection;
@@ -68,6 +72,13 @@ figma.ui.onmessage = async msg => {
         newSticky.x = x + 200;
         newSticky.y = y + 200;
         newSticky.text.characters = node.characters;
+
+        setTimeout(function() {
+          figma.ui.postMessage({
+            type: "complete",
+            message: "complete"
+          });
+        }, 500);
       } else {
         return;
       }
@@ -84,6 +95,7 @@ figma.ui.onmessage = async msg => {
         let textToConvert = [];
         let existingString = node.characters;
         let splitLines = existingString.split("\n");
+        let stackXAxis = 0;
 
         splitLines.forEach(string => {
           if (string !== "") {
@@ -95,8 +107,7 @@ figma.ui.onmessage = async msg => {
               newSticky.x = x + getRandomInt(200, 400);
               newSticky.y = y + getRandomInt(200, 400);
               newSticky.text.characters = string;
-              // todo Bring to front
-              // todo illustrations + animations
+              // todo Bring to front or make  into  grid
             }
           }
         });
@@ -109,16 +120,14 @@ figma.ui.onmessage = async msg => {
           newSticky.text.characters = trimSentence;
         });
       }
-    }
 
-    // Need to wait for some promises to resolve before
-    // sending the skipped layers back to the UI.
-    // setTimeout(function() {
-    //   figma.ui.postMessage({
-    //     type: "layers-skipped",
-    //     message: serializeNodes(skippedLayers)
-    //   });
-    // }, 500);
+      setTimeout(function() {
+        figma.ui.postMessage({
+          type: "complete",
+          message: "complete"
+        });
+      }, 500);
+    }
 
     figma.notify(`Stickys Created 🎉`, { timeout: 1000 });
   }
