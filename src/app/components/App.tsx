@@ -139,7 +139,7 @@ const App = ({}) => {
                         src={require("../assets/convert-layers.svg")}
                       />
                       <h3 className=" type type--pos-large-medium">
-                        Turn text layers into stickys
+                        Create stickys from text layers
                       </h3>
                     </div>
                   </div>
