@@ -59,17 +59,21 @@ figma.ui.onmessage = async msg => {
     let y = selection[0].y;
 
     if (msg.message === "convert-layers") {
-      selection.map(selected => convertToSticky(selected, x, y));
+      selection.map((selected, index) =>
+        convertToSticky(selected, index, x, y)
+      );
     }
 
     if (msg.message === "convert-paragraph") {
       selection.map(selected => convertParagraph(selected, x, y));
     }
 
-    async function convertToSticky(node, x, y) {
+    async function convertToSticky(node, index, x, y) {
       if (node.type === "TEXT") {
+        index = index + 1;
+
         let newSticky = figma.createSticky();
-        newSticky.x = x + 200;
+        newSticky.x = x + index * 260;
         newSticky.y = y + 200;
         newSticky.text.characters = node.characters;
 
@@ -84,12 +88,6 @@ figma.ui.onmessage = async msg => {
       }
     }
 
-    function getRandomInt(min, max) {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     async function convertParagraph(node, x, y) {
       if (node.type === "TEXT") {
         let textToConvert = [];
@@ -97,26 +95,33 @@ figma.ui.onmessage = async msg => {
         let splitLines = existingString.split("\n");
         let stackXAxis = 0;
 
+        // For laying out the stickies in a grid.
+        function updateX(x) {
+          stackXAxis = x + 260;
+        }
+
+        // For each line, determine if it's a full sentence or a line break.
         splitLines.forEach(string => {
           if (string !== "") {
             if (string.match(/[^\.!\?]+[\.!\?]+/g)) {
               let splitSentences = string.match(/[^\.!\?]+[\.!\?]+/g);
               textToConvert.push(...splitSentences);
             } else {
+              updateX(stackXAxis);
               let newSticky = figma.createSticky();
-              newSticky.x = x + getRandomInt(200, 400);
-              newSticky.y = y + getRandomInt(200, 400);
+              newSticky.x = x + stackXAxis;
+              newSticky.y = y + 260;
               newSticky.text.characters = string;
-              // todo Bring to front or make  into  grid
             }
           }
         });
 
         textToConvert.forEach(sentence => {
+          updateX(stackXAxis);
           let trimSentence = sentence.trim();
           let newSticky = figma.createSticky();
-          newSticky.x = x + getRandomInt(200, 400);
-          newSticky.y = y + getRandomInt(200, 400);
+          newSticky.x = x + stackXAxis;
+          newSticky.y = y + 260;
           newSticky.text.characters = trimSentence;
         });
       }
