@@ -1,5 +1,5 @@
 // Plugin window dimensions
-figma.showUI(__html__, { width: 320, height: 407 });
+figma.showUI(__html__, { width: 320, height: 348 });
 
 // Utility function for serializing nodes to pass back to the UI.
 function serializeNodes(nodes) {
@@ -28,7 +28,7 @@ const flatten = obj => {
 };
 
 figma.ui.onmessage = async msg => {
-  // Load our fonts first, load your own brand fonts here.
+  // Load our fonts first.
   await figma.loadFontAsync({ family: "Inter", style: "Medium" });
 
   if (msg.type === "run-app") {
@@ -40,7 +40,9 @@ figma.ui.onmessage = async msg => {
       });
     } else {
       let selectedNodes = flatten(figma.currentPage.selection);
-      // Update the UI with the number of selected nodes.
+
+      // Pass the selection back to the UI, we don't render it
+      // but we check for how many items are selected.
       figma.ui.postMessage({
         type: "selection-updated",
         message: serializeNodes(selectedNodes)
@@ -52,88 +54,73 @@ figma.ui.onmessage = async msg => {
     figma.closePlugin();
   }
 
+  // When the API call is complete and we want to add
+  // the summary near the group of stickys.
+  if (msg.type === "add-summary") {
+    const selection = figma.currentPage.selection;
+    let x = selection[selection.length - 1].x;
+    let y = selection[0].y;
+    createText(msg.message, x, y);
+  }
+
   // When a button is clicked
   if (msg.type === "button-clicked") {
     const selection = figma.currentPage.selection;
-    let x = selection[0].x;
-    let y = selection[0].y;
+    let textCombinedFromStickys = [];
+    let selectedNodeIds = [];
 
-    if (msg.message === "convert-layers") {
-      selection.map((selected, index) =>
-        convertToSticky(selected, index, x, y)
-      );
-    }
+    // For each sticky note, check to see if it's a complete sentence.
+    // if not, add a period so we send more accurate sentences to
+    // the summarization API.
+    if (msg.message === "summarize-layers") {
+      selection.forEach(function(node, index) {
+        if (node.type === "STICKY") {
+          let stickyText = node.text.characters;
 
-    if (msg.message === "convert-paragraph") {
-      selection.map(selected => convertParagraph(selected, x, y));
-    }
-
-    async function convertToSticky(node, index, x, y) {
-      if (node.type === "TEXT") {
-        index = index + 1;
-
-        let newSticky = figma.createSticky();
-        newSticky.x = x + index * 260;
-        newSticky.y = y + 200;
-        newSticky.text.characters = node.characters;
-
-        setTimeout(function() {
-          figma.ui.postMessage({
-            type: "complete",
-            message: "complete"
-          });
-        }, 500);
-      } else {
-        return;
-      }
-    }
-
-    async function convertParagraph(node, x, y) {
-      if (node.type === "TEXT") {
-        let textToConvert = [];
-        let existingString = node.characters;
-        let splitLines = existingString.split("\n");
-        let stackXAxis = 0;
-
-        // For laying out the stickies in a grid.
-        function updateX(x) {
-          stackXAxis = x + 260;
-        }
-
-        // For each line, determine if it's a full sentence or a line break.
-        splitLines.forEach(string => {
-          if (string !== "") {
-            if (string.match(/[^\.!\?]+[\.!\?]+/g)) {
-              let splitSentences = string.match(/[^\.!\?]+[\.!\?]+/g);
-              textToConvert.push(...splitSentences);
-            } else {
-              updateX(stackXAxis);
-              let newSticky = figma.createSticky();
-              newSticky.x = x + stackXAxis;
-              newSticky.y = y + 260;
-              newSticky.text.characters = string;
-            }
+          if (stickyText.match(/[^\.!\?]+[\.!\?]+/g)) {
+            textCombinedFromStickys.push(stickyText);
+          } else {
+            let newFullSentence = stickyText + ".";
+            textCombinedFromStickys.push(newFullSentence);
           }
-        });
 
-        textToConvert.forEach(sentence => {
-          updateX(stackXAxis);
-          let trimSentence = sentence.trim();
-          let newSticky = figma.createSticky();
-          newSticky.x = x + stackXAxis;
-          newSticky.y = y + 260;
-          newSticky.text.characters = trimSentence;
-        });
-      }
-
-      setTimeout(function() {
-        figma.ui.postMessage({
-          type: "complete",
-          message: "complete"
-        });
-      }, 500);
+          selectedNodeIds.push(node.id);
+        }
+      });
     }
 
-    figma.notify(`Stickys Created 🎉`, { timeout: 1000 });
+    // Combine all the strings into one paragraph.
+    let textToAnalyze = textCombinedFromStickys.join(" ");
+
+    setTimeout(function() {
+      figma.ui.postMessage({
+        type: "ready",
+        message: textToAnalyze,
+        ids: selectedNodeIds
+      });
+    }, 500);
   }
+
+  // Add the summary as a text layer.
+  async function createText(message, x, y) {
+    let layerArray = [];
+    let newTextLayer = figma.createText();
+    let lineHeight = {};
+    lineHeight.unit = "PIXELS";
+    lineHeight.value = 28;
+    let characterLength;
+
+    newTextLayer.x = x + 120;
+    newTextLayer.y = y;
+    newTextLayer.fontSize = 24;
+    newTextLayer.characters = message;
+    newTextLayer.resize(400, 120);
+
+    characterLength = message.length;
+    newTextLayer.setRangeLineHeight(0, characterLength, lineHeight);
+    newTextLayer.textAutoResize = "HEIGHT";
+    layerArray.push(newTextLayer);
+    figma.viewport.scrollAndZoomIntoView(layerArray);
+  }
+  // figma.notify(`Stickys Created 🎉`, { timeout: 1000 });
 };

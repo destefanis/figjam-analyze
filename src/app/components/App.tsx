@@ -1,5 +1,7 @@
 import * as React from "react";
 import { motion, AnimateSharedLayout } from "framer-motion";
+import axios from "axios";
+import Preloader from "./Preloader";
 import "../styles/figma-plugin-ds.css";
 import "../styles/ui.css";
 import "../styles/controls.css";
@@ -10,6 +12,9 @@ declare function require(path: string): any;
 const App = ({}) => {
   const [selectedLayersLength, setSelectLayersLength] = React.useState(0);
   const [isComplete, setIsComplete] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [selectionLength, setSelectionLength] = React.useState(0);
+  const [summary, setSummary] = React.useState("");
 
   // Initial running of the app
   const onRunApp = React.useCallback(() => {
@@ -25,19 +30,18 @@ const App = ({}) => {
   }, []);
 
   // Message to controller to convert text layers into stickys.
-  const convertTextLayers = React.useCallback(() => {
-    const message = "convert-layers";
+  const summarizeSelection = React.useCallback(() => {
+    const message = "summarize-layers";
     parent.postMessage(
       { pluginMessage: { type: "button-clicked", message } },
       "*"
     );
   }, []);
 
-  // Message to controller to convert paragraph into stickys.
-  const convertParagraph = React.useCallback(() => {
-    const message = "convert-paragraph";
+  // Message to the controller to add the summary as a text layer.
+  const addSummary = React.useCallback(message => {
     parent.postMessage(
-      { pluginMessage: { type: "button-clicked", message } },
+      { pluginMessage: { type: "add-summary", message } },
       "*"
     );
   }, []);
@@ -46,7 +50,7 @@ const App = ({}) => {
     onRunApp();
 
     window.onmessage = event => {
-      const { type, message } = event.data.pluginMessage;
+      const { type, message, ids } = event.data.pluginMessage;
 
       if (type === "selection-updated") {
         if (message === "empty") {
@@ -55,8 +59,50 @@ const App = ({}) => {
           let nodeArray = JSON.parse(message);
           setSelectLayersLength(nodeArray.length);
         }
-      } else if (type === "complete") {
-        setIsComplete(true);
+      } else if (type === "ready") {
+        setIsLoading(true);
+        let numberOfSentences = 1;
+
+        // Change length of summary
+        // depending on how many stickys were selected
+        if (ids.length >= 6) {
+          numberOfSentences = 1;
+        } else if (ids.length >= 12) {
+          numberOfSentences = 1;
+        } else {
+          numberOfSentences = 1;
+        }
+
+        const options = {
+          method: "POST",
+          url: "https://gpt-summarization.p.rapidapi.com/summarize",
+          headers: {
+            "content-type": "application/json",
+            "x-rapidapi-host": "gpt-summarization.p.rapidapi.com",
+            "x-rapidapi-key": ""
+          },
+          data: { text: message, num_sentences: numberOfSentences }
+        };
+
+        console.log(message);
+
+        axios
+          .request(options)
+          .then(function(response) {
+            // console.log(response.data);
+            if (response.data.summary === ".") {
+              setIsLoading(false);
+            } else {
+              setIsLoading(false);
+              setIsComplete(true);
+              setSummary(response.data.summary);
+              setSelectionLength(ids.length);
+              addSummary(response.data.summary);
+            }
+          })
+          .catch(function(error) {
+            setIsLoading(false);
+          });
       }
     };
   }, []);
@@ -76,10 +122,10 @@ const App = ({}) => {
             <div className="empty-state-content">
               <img
                 className="layer-icon"
-                src={require("../assets/convert.svg")}
+                src={require("../assets/empty-state.svg")}
               />
               <h3 className="type type--pos-large-medium">
-                Select a text layer(s) first and hit start.
+                Select sticky notes and hit start.
               </h3>
             </div>
             <button
@@ -101,19 +147,18 @@ const App = ({}) => {
                 exit={{ x: -40, opacity: 0 }}
               >
                 <div className="empty-state-content">
-                  <img
-                    className="layer-icon"
-                    src={require("../assets/success.svg")}
-                  />
-                  <h3 className="type type--pos-large-medium">
-                    Stickys created!
+                  <h5 className="summary-label">
+                    Summary of {selectionLength} stickys
+                  </h5>
+                  <h3 className="type type--pos-large-medium summary-title">
+                    {summary}
                   </h3>
                 </div>
                 <button
                   className="button button--primary button-margin-top"
                   onClick={onRunApp}
                 >
-                  Start again
+                  Run Again
                 </button>
                 <button
                   className="button button--secondary button-margin-top"
@@ -123,39 +168,41 @@ const App = ({}) => {
                 </button>
               </motion.div>
             ) : (
-              <motion.div
-                className="active-state"
-                key="active"
-                layout
-                initial={{ x: 40, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -40, opacity: 0 }}
-              >
-                <div className="card-wrapper">
-                  <div className="card">
-                    <div className="card-content" onClick={convertTextLayers}>
-                      <img
-                        className="layer-icon"
-                        src={require("../assets/convert-layers.svg")}
-                      />
-                      <h3 className=" type type--pos-large-medium">
-                        Create stickys from text layers
-                      </h3>
-                    </div>
-                  </div>
-                  <div className="card">
-                    <div className="card-content" onClick={convertParagraph}>
-                      <img
-                        className="layer-icon"
-                        src={require("../assets/convert.svg")}
-                      />
-                      <h3 className=" type type--pos-large-medium">
-                        Turn paragraph into stickys
-                      </h3>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+              <React.Fragment>
+                {isLoading ? (
+                  <React.Fragment>
+                    <Preloader />
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <motion.div
+                      className="active-state"
+                      key="active"
+                      layout
+                      initial={{ x: 40, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: -40, opacity: 0 }}
+                    >
+                      <div className="card-wrapper">
+                        <div className="card">
+                          <div
+                            className="card-content"
+                            onClick={summarizeSelection}
+                          >
+                            <img
+                              className="layer-icon"
+                              src={require("../assets/summarize-layers.svg")}
+                            />
+                            <h3 className=" type type--pos-large-medium">
+                              Summarize
+                            </h3>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </React.Fragment>
+                )}
+              </React.Fragment>
             )}
           </React.Fragment>
         )}

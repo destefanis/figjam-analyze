@@ -1,6 +1,6 @@
 {
-  "name": "Create Sticky From Text",
-  "id": "1005240989771352255",
+  "name": "Summarize Stickys",
+  "id": "",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",

@@ -9,10 +9,12 @@
 		"prettier:format": "prettier --write 'src/**/*.{js,jsx,ts,tsx,css,json}' "
 	},
 	"dependencies": {
+		"axios": "^0.21.1",
 		"classnames": "^2.2.6",
 		"framer-motion": "^4.1.17",
 		"react": "^16.8.6",
-		"react-dom": "^16.8.6"
+		"react-dom": "^16.8.6",
+		"retext-keywords": "^7.0.0"
 	},
 	"devDependencies": {
 		"@types/react": "^16.8.24",
