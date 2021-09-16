@@ -79,7 +79,8 @@ const App = ({}) => {
           headers: {
             "content-type": "application/json",
             "x-rapidapi-host": "gpt-summarization.p.rapidapi.com",
-            "x-rapidapi-key": ""
+            "x-rapidapi-key":
+              "0a4619bd8dmsh576b506ef46f8c4p1f9c2ejsn6ef24a5629f5"
           },
           data: { text: message, num_sentences: numberOfSentences }
         };

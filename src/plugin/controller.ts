@@ -110,7 +110,7 @@ figma.ui.onmessage = async msg => {
     lineHeight.value = 28;
     let characterLength;
 
-    newTextLayer.x = x + 120;
+    newTextLayer.x = x + 280;
     newTextLayer.y = y;
     newTextLayer.fontSize = 24;
     newTextLayer.characters = message;
