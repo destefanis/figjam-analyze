@@ -32,6 +32,8 @@ const App = ({}) => {
   // Message to controller to convert text layers into stickys.
   const summarizeSelection = React.useCallback(() => {
     const message = "summarize-layers";
+    console.log("clicked");
+
     parent.postMessage(
       { pluginMessage: { type: "button-clicked", message } },
       "*"
